@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>House Price Predictor</title>
+        <style>
+          
+
+            .predictionForm{
+                background-color: lightgray;
+                padding: 4%;
+                margin: 2%;
+                border-radius: 20px;
+            }
+
+            .header{
+                text-align: center;
+                color: rgb(18, 18, 24);
+            }
+
+            .model-feature{
+                margin: 10px 0;
+            }
+
+            input{
+
+                display: block;
+                width: 100%;
+                padding: 8px;
+                border-radius: 5px;
+                border: none;
+            }
+
+            button{
+                padding: 5px;
+                border-radius: 5px;
+                background-color: blue;
+                color: lightgray;
+                border: none;
+                font-size: 20px;
+            }
+
+            .error{
+                background-color: red;
+                color: white;
+                padding: 2% 4%;
+                margin: 2%;
+                border-radius: 20px;
+            }
+            .success{
+                background-color: green;
+                color: white;
+                padding: 2% 4%;
+                margin: 2%;
+                border-radius: 20px;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1 class="header">House Price Predictor</h1>
+
+            <form class="predictionForm" id="predictionForm">
+                <div class="model-feature">
+                    <label for="square_feet">Square Feet:</label>
+                    <input type="number" id="square_feet" name="square_feet" placeholder="e.g 25000">
+                </div>
+                <div class="model-feature">
+                    <label for="bedrooms">Bedrooms:</label>
+                    <input type="number" id="bedrooms" name="bedrooms" placeholder="e.g 3">
+                </div>
+                <div class="model-feature">
+                    <label for="bathrooms">Bathrooms:</label>
+                    <input type="number" id="bathrooms" name="bathrooms" placeholder="e.g 3">
+                </div>
+                <div class="model-feature">
+                    <label for="age_years">Age Years:</label>
+                    <input type="number" id="age_years" name="age_years" placeholder="e.g 3">
+                </div>
+                <div class="model-feature">
+                    <label for="garage">Garage:</label>
+                    <input type="number" id="garage" name="garage" placeholder="e.g 3">
+                </div>
+                <div class="model-feature">
+                    <label for="location_score">Location Score:</label>
+                    <input type="number" id="location_score" name="location_score" placeholder="range 0-10">
+                </div>
+
+                <button type="submit">Predict Price</button>
+            </form>
+
+            <div  id="result"></div>
+
+        </div>
+
+
+        <script>
+            document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(e.target);
+                const data = {};
+
+                formData.forEach((value, key) => {
+                    data[key] = parseFloat(value);
+                } );
+
+                try{
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    const resultDiv = document.getElementById('result');
+
+                    if (result.success){
+                        resultDiv.className = 'success';
+                        resultDiv.innerHTML = `
+                        <strong> Prediction Successful! </strong>
+                        <div class ="price-result"> ${result.predicted_price_formatted}</div>
+                        `;
+                    } else{
+                        resultDiv.className = 'error';
+                         resultDiv.innerHTML = `<strong">Error: ${result.error}</strong>`;
+
+                    }
+
+                    resultDiv.style.display = 'block'
+                } catch (error) {
+                    const resultDiv = document.getElementById('result')
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = `<strong>Error: ${error.message}</strong>`;
+                    resultDiv.style.display = 'block'
+                    
+                }
+
+            })
+        </script>
+    </body>
+</html>
