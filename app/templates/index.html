@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>House Price Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F1EFE7;
+    --panel: #FBFAF6;
+    --ink: #232A2E;
+    --muted: #6B6F63;
+    --line: #D9D5C8;
+    --pine: #2F5233;
+    --pine-dark: #223D26;
+    --clay: #B15A3D;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", sans-serif;
+    line-height: 1.5;
+  }
+
+  ::selection { background: var(--pine); color: var(--paper); }
+  :focus-visible { outline: 2px solid var(--clay); outline-offset: 2px; }
+
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  header {
+    margin-bottom: 40px;
+    max-width: 520px;
+  }
+
+  header p.eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  h1 {
+    font-family: "Source Serif 4", serif;
+    font-weight: 600;
+    font-size: 34px;
+    line-height: 1.15;
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+
+  header .lede {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 44ch;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  @media (max-width: 760px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  /* --- blueprint sketch --- */
+  .blueprint {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 20px;
+  }
+
+  .blueprint svg { width: 100%; height: auto; display: block; }
+
+  .blueprint .caption {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 12px;
+    letter-spacing: 0.01em;
+  }
+
+  .dim-line {
+    stroke: var(--pine);
+    stroke-width: 1;
+    stroke-dasharray: 220;
+    stroke-dashoffset: 220;
+    animation: draw 1.1s ease-out forwards;
+  }
+  .dim-line.d2 { animation-delay: 0.15s; }
+  .dim-line.d3 { animation-delay: 0.3s; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .dim-line { animation: none; stroke-dashoffset: 0; }
+  }
+
+  /* --- form --- */
+  form {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 28px 28px 24px;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 16px;
+  }
+
+  .field { margin: 0; }
+
+  .field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 3px;
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  .field input:focus { border-color: var(--pine); }
+
+  .field input::placeholder { color: #B7B3A5; }
+
+  button[type="submit"] {
+    margin-top: 22px;
+    width: 100%;
+    padding: 13px;
+    background: var(--pine);
+    color: var(--panel);
+    border: none;
+    border-radius: 3px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: "Inter", sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  button[type="submit"]:hover { background: var(--pine-dark); }
+  button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* --- result --- */
+  #result {
+    display: none;
+    margin-top: 18px;
+    border: 1px solid var(--line);
+    padding: 18px 20px;
+  }
+
+  #result.success {
+    border-color: var(--pine);
+    background: #EDF2EA;
+  }
+
+  #result.error {
+    border-color: var(--clay);
+    background: #F7E9E3;
+  }
+
+  #result .result-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+
+  #result.error .result-label { color: var(--clay); }
+
+  #result .price-result {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--pine-dark);
+  }
+
+  #result.error .price-result,
+  #result .error-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--clay);
+    font-family: "Inter", sans-serif;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <p class="eyebrow">Estimator</p>
+    <h1>What would this house sell for?</h1>
+    <p class="lede">Enter the property's basic details for an instant valuation.</p>
+  </header>
+
+  <div class="layout">
+    <div class="blueprint">
+      <svg viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- simple house elevation sketch -->
+        <polygon points="40,120 130,55 220,120" fill="none" stroke="#232A2E" stroke-width="1.5"/>
+        <rect x="55" y="120" width="150" height="60" fill="none" stroke="#232A2E" stroke-width="1.5"/>
+        <rect x="75" y="140" width="25" height="25" fill="none" stroke="#232A2E" stroke-width="1.2"/>
+        <rect x="160" y="140" width="25" height="25" fill="none" stroke="#232A2E" stroke-width="1.2"/>
+        <rect x="118" y="150" width="24" height="30" fill="none" stroke="#232A2E" stroke-width="1.2"/>
+
+        <!-- dimension lines -->
+        <line class="dim-line d1" x1="40" y1="192" x2="205" y2="192" stroke-dasharray="165" style="stroke-dashoffset:165"/>
+        <line x1="40" y1="186" x2="40" y2="192" stroke="#2F5233" stroke-width="1"/>
+        <line x1="205" y1="186" x2="205" y2="192" stroke="#2F5233" stroke-width="1"/>
+
+        <line class="dim-line d2" x1="230" y1="120" x2="230" y2="180" stroke-dasharray="60" style="stroke-dashoffset:60"/>
+        <line x1="224" y1="120" x2="230" y2="120" stroke="#2F5233" stroke-width="1"/>
+        <line x1="224" y1="180" x2="230" y2="180" stroke="#2F5233" stroke-width="1"/>
+
+        <line class="dim-line d3" x1="14" y1="120" x2="14" y2="55" stroke-dasharray="90" style="stroke-dashoffset:90"/>
+      </svg>
+      <p class="caption">Elevation, plot not to scale</p>
+    </div>
+
+    <form id="predictionForm">
+      <div class="field-grid">
+        <div class="field">
+          <label for="square_feet">Square feet</label>
+          <input type="number" id="square_feet" name="square_feet" placeholder="e.g. 2500" required>
+        </div>
+        <div class="field">
+          <label for="bedrooms">Bedrooms</label>
+          <input type="number" id="bedrooms" name="bedrooms" placeholder="e.g. 3" required>
+        </div>
+        <div class="field">
+          <label for="bathrooms">Bathrooms</label>
+          <input type="number" id="bathrooms" name="bathrooms" placeholder="e.g. 2" required>
+        </div>
+        <div class="field">
+          <label for="age_years">Age (years)</label>
+          <input type="number" id="age_years" name="age_years" placeholder="e.g. 8" required>
+        </div>
+        <div class="field">
+          <label for="garage">Garage spaces</label>
+          <input type="number" id="garage" name="garage" placeholder="e.g. 2" required>
+        </div>
+        <div class="field">
+          <label for="location_score">Location score</label>
+          <input type="number" id="location_score" name="location_score" placeholder="0–10" min="0" max="10" required>
+        </div>
+      </div>
+
+      <button type="submit">Estimate value</button>
+
+      <div id="result"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const resultDiv = document.getElementById('result');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Estimating...';
+
+    const formData = new FormData(e.target);
+    const data = {};
+    formData.forEach((value, key) => { data[key] = parseFloat(value); });
+
+    try {
+      const response = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        resultDiv.className = 'success';
+        resultDiv.innerHTML = `
+          <p class="result-label">Estimated value</p>
+          <div class="price-result">${result.predicted_price_formatted}</div>
+        `;
+      } else {
+        resultDiv.className = 'error';
+        resultDiv.innerHTML = `
+          <p class="result-label">Couldn't estimate this one</p>
+          <div class="error-text">${result.error}</div>
+        `;
+      }
+      resultDiv.style.display = 'block';
+    } catch (error) {
+      resultDiv.className = 'error';
+      resultDiv.innerHTML = `
+        <p class="result-label">Something went wrong</p>
+        <div class="error-text">${error.message}</div>
+      `;
+      resultDiv.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Estimate value';
+    }
+  });
+</script>
+</body>
+</html>
